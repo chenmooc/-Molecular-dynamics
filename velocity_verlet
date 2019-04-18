@@ -1,0 +1,63 @@
+clc;
+clear;
+[afa, x, y, vx, vy, dt, step] = textread...
+    ('INCAR.dat','%f %f %f %f %f %f %d','headerlines',1);
+fileID = fopen('./ans_verlet.dat','wt');
+shuzux = zeros(step,1);
+shuzuy = zeros(step,1);
+shuzuEk = zeros(step,1);
+shuzuEv = zeros(step,1);
+shuzuEtot = zeros(step,1);
+axisx = zeros(step,1);
+pi = 4*atan(1.0); 
+t = 0;
+
+    r = sqrt(x*x+y*y); 
+    a = -4*(pi^2)*(1+afa/(r^2))/(r^3);
+    
+    x = x+dt*vx+0.5*(dt^2)*a*x;
+    y = y+dt*vy+0.5*(dt^2)*a*y;
+    a1 = a;
+    Ek = 0.5*(vx^2+vy^2);
+    Ev = 4*pi*pi/r;
+    Etot = Ek+Ev;
+    fprintf(fileID,'%4.8f  %4.8f\n',x,y);
+    shuzux(1,1) = x;
+    shuzuy(1,1) = y;
+    shuzuEk(1,1) = Ek;
+    shuzuEv(1,1) = Ev;
+    shuzuEtot(1,1) = Etot;
+
+for i=1:step
+    r = sqrt(x*x+y*y);
+    a = -4*(pi^2)*(1+afa/(r^2))/(r^3);
+    
+    x = x+dt*vx+0.5*(dt^2)*a*x;
+    y = y+dt*vy+0.5*(dt^2)*a*y;
+    
+    vx = vx+0.5*dt*(a+a1)*x;
+    vy = vy+0.5*dt*(a+a1)*y;
+
+    Ek = 0.5*(vx^2+vy^2);
+    Ev = -4*pi*pi/r;
+	Etot = Ek+Ev;
+    
+    a1=a;
+    
+    fprintf(fileID,'%4.8f  %4.8f\n',x,y);
+    shuzux(i+1,1) = x;
+    shuzuy(i+1,1) = y;
+    shuzuEk(i+1,1) = Ek;
+    shuzuEv(i+1,1) = Ev;
+    shuzuEtot(i+1,1) = Etot;
+    t = t+dt;
+    axisx(i+1,1) = t;
+
+end
+
+fclose(fileID);
+figure(1); plot(shuzux,shuzuy); grid on;
+figure(2); plot(axisx,shuzuEk); grid on;
+figure(3); plot(axisx,shuzuEv); grid on;
+figure(4); plot(axisx,shuzuEtot); grid on;
+
